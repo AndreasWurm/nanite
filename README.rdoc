@@ -3,6 +3,10 @@
 Google Group:  http://groups.google.com/group/nanite
 irc.freenode.net:  #nanite
 
+== My Changes
+
+*Actors can be registered and unregistered at runtime
+
 == Intro
 
 Nanite is a new way of thinking about building cloud ready web applications. Having
