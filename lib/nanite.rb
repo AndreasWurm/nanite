@@ -5,6 +5,7 @@ require 'json'
 require 'logger'
 require 'yaml'
 require 'openssl'
+require 'observer'
 
 $:.unshift File.dirname(__FILE__)
 require 'nanite/amqp'

@@ -56,5 +56,27 @@ describe Nanite::ActorRegistry do
     @registry.register(importer, 'monkey')
     @registry.actor_for('monkey').should == importer
   end
+
+  it "should unreqister an actor" do
+    @registry.register(WebDocumentImporter.new, nil)
+    @registry.register(Actors::ComedyActor.new, nil)
+    @registry.un_register(Actors::ComedyActor.new, nil)
+    @registry.services.sort.should == ["/web_document_importer/cancel", "/web_document_importer/import"]
+  end
+
+  it "should log info message that actor was registered" do
+    importer = WebDocumentImporter.new
+    @registry.register(importer, nil)
+    Nanite::Log.should_receive(:info).with("[actor] #{importer.class.to_s} removed")
+    @registry.un_register(importer, nil)
+  end
+
+  it "should notify its observers if an actor gets registered" do
+    observer = Object.new
+    observer.stub!(:update)
+    @registry.add_observer(observer)
+    observer.should_receive(:update)
+    @registry.register(WebDocumentImporter.new, nil)
+  end
   
 end # Nanite::ActorRegistry

@@ -61,3 +61,13 @@ describe String do
   end
 
 end # String
+
+describe Notifier do
+  it "should notify its receiver through the specified method" do
+    receiver = Object.new
+    receiver.stub!(:a_method)
+    receiver.should_receive(:a_method)
+    notifier = Notifier.new(:notify => receiver, :through => :a_method)
+    notifier.update
+  end
+end # Notifier

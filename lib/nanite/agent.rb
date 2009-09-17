@@ -89,6 +89,8 @@ module Nanite
       @tags << opts[:tag]
       @tags.flatten!
       @options.freeze
+
+      @registry = ActorRegistry.new
     end
     
     def run
@@ -107,21 +109,28 @@ module Nanite
         pid_file.write
         at_exit { pid_file.remove }
       end
-      @amq = start_amqp(@options)
-      @registry = ActorRegistry.new
+      @amq = start_amqp(@options)   
       @dispatcher = Dispatcher.new(@amq, @registry, @serializer, @identity, @options)
       setup_mapper_proxy
       load_actors
       setup_traps
       setup_queue
       advertise_services
+      # observe registry
+      @registry.add_observer(Notifier.new(:notify => self, :through => :advertise_services))
+
+      # if register is called, advertise_services
       setup_heartbeat
-      at_exit { un_register } unless $TESTING
+      at_exit { un_register_from_mapper } unless $TESTING
       start_console if @options[:console] && !@options[:daemonize]
     end
 
     def register(actor, prefix = nil)
       registry.register(actor, prefix)
+    end
+
+    def un_register(actor, prefix = nil)
+      registry.un_register(actor, prefix)
     end
 
     # Can be used in agent's initialization file to register a security module
@@ -225,7 +234,7 @@ module Nanite
     def setup_traps
       ['INT', 'TERM'].each do |sig|
         old = trap(sig) do
-          un_register
+          un_register_from_mapper
           amq.instance_variable_get('@connection').close do
             EM.stop
             old.call if old.is_a? Proc
@@ -234,10 +243,10 @@ module Nanite
       end
     end
     
-    def un_register
+    def un_register_from_mapper
       unless @unregistered
         @unregistered = true
-        Nanite::Log.info("SEND [un_register]")
+        Nanite::Log.info("SEND [un_register_from_mapper]")
         amq.fanout('registration', :no_declare => options[:secure]).publish(serializer.dump(UnRegister.new(identity)))
       end
     end

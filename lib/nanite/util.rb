@@ -56,3 +56,14 @@ class Object
     end
   end
 end
+
+class Notifier
+  def initialize(options)
+    @receiver = options[:notify]
+    @method = options[:through]
+  end
+
+  def update(*args)
+    @receiver.method(@method).call(*args)
+  end
+end

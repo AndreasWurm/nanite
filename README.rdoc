@@ -5,7 +5,7 @@ irc.freenode.net:  #nanite
 
 == My Changes
 
-*Actors can be registered and unregistered at runtime
+* Actors can be registered and unregistered at runtime
 
 == Intro
 
